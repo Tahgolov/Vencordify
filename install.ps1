@@ -21,7 +21,7 @@ $OnlineScriptUrl = "https://raw.githubusercontent.com/$MyRepo/main/install.ps1"
 
 $TaskName = "VencordifyAutoUpdate"
 
-function Help {
+function Show-Help {
     Write-Host ""
     $Logo = @'
                                     _ _  __       
@@ -71,9 +71,12 @@ function Help {
     Write-Host ""
 }
 
-if ($custom_args -contains "?") {
-    Help
-    exit 0
+$isHelpTriggered = $args -contains "-?" -or $args -contains "?" -or $args -contains "-h" -or $args -contains "-help" -or $args -contains "--help" -or $custom_args -contains "?"
+$hasWorkerAction = $install -or $repair -or $uninstall -or $openasar -or $install_openasar -or $uninstall_openasar -or $interactive
+
+if ($isHelpTriggered -and -not $hasWorkerAction) {
+    Show-Help
+    return
 }
 
 function Manage-ScheduledTask {
