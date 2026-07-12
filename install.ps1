@@ -15,6 +15,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+$Scripts:InstancesToRestart = @()
+
 $ScriptVersion = "0.0.1"
 $MyRepo = "Tahgolov/Vencordify"
 $OnlineScriptUrl = "https://raw.githubusercontent.com/$MyRepo/main/install.ps1"
@@ -74,14 +76,6 @@ function Show-Help {
     Write-Host "  .\install.ps1 -uninstall -openasar"
     Write-Host "  .\install.ps1 -setup_autorun"
     Write-Host ""
-}
-
-$isHelpTriggered = $args -contains "-?" -or $args -contains "?" -or $args -contains "-h" -or $args -contains "-help" -or $args -contains "--help" -or $custom_args -contains "?"
-$hasWorkerAction = $install -or $repair -or $uninstall -or $openasar -or $install_openasar -or $uninstall_openasar -or $interactive
-
-if ($isHelpTriggered -and -not $hasWorkerAction) {
-    Show-Help
-    return
 }
 
 function Manage-ScheduledTask {
@@ -147,10 +141,37 @@ function Get-GitHubRelease {
 }
 
 function Stop-Discord {
-    $discordProcesses = Get-Process -Name Discord -ErrorAction SilentlyContinue
+    $Scripts:InstancesToRestart = @()
+    
+    $discordNames = @("Discord", "DiscordPTB", "DiscordCanary")
+    $discordProcesses = Get-Process -Name $discordNames -ErrorAction SilentlyContinue
+    
     if ($discordProcesses) {
-        Write-Host "[*] Terminating Discord processes..." -ForegroundColor Yellow
-        Stop-Process -Name Discord -Force -ErrorAction SilentlyContinue
+        Write-Host "[*] Обнаружены запущенные процессы Discord. Анализируем пути..." -ForegroundColor Yellow
+        
+        foreach ($proc in $discordProcesses) {
+            try {
+                $exePath = $proc.Path
+                if ($exePath) {
+                    $appFolder = Split-Path $exePath -Parent
+                    $mainFolder = Split-Path $appFolder -Parent
+                    $updateExe = Join-Path $mainFolder "Update.exe"
+                    $exeName = Split-Path $exePath -Leaf
+                    
+                    if (Test-Path $updateExe) {
+                        $instanceData = @{ UpdateExe = $updateExe; ExeName = $exeName }
+                        
+                        if ($Scripts:InstancesToRestart.UpdateExe -notcontains $updateExe) {
+                            $Scripts:InstancesToRestart += $instanceData
+                        }
+                    }
+                }
+            } catch {
+            }
+        }
+
+        Write-Host "[*] Завершаем работу Discord для применения обновлений..." -ForegroundColor Yellow
+        Stop-Process -InputObject $discordProcesses -Force -ErrorAction SilentlyContinue
         $discordProcesses | Wait-Process -Timeout 5 -ErrorAction SilentlyContinue
     }
 }
@@ -233,13 +254,26 @@ function Resolve-Arguments {
 function Start-DiscordInstance {
     $isEligibleAction = $install -or $repair -or $install_openasar -or ($openasar -and -not $uninstall)
 
-    if ($isEligibleAction -and -not $setup_autorun) {
-        $DiscordUpdateExe = Join-Path $env:LOCALAPPDATA "Discord\Update.exe"
-        if (Test-Path $DiscordUpdateExe) {
-            Write-Host "[*] Restarting Discord..." -ForegroundColor Green
-            Start-Process -FilePath $DiscordUpdateExe -ArgumentList "--processStart", "Discord.exe"
+    if ($isEligibleAction -and -not $setup_autorun -and $Scripts:InstancesToRestart.Count -gt 0) {
+        Write-Host "[*] Возвращаем запущенные ранее инстансы Discord..." -ForegroundColor Green
+        
+        foreach ($instance in $Scripts:InstancesToRestart) {
+            if (Test-Path $instance.UpdateExe) {
+                Write-Host "[+] Запуск: $($instance.UpdateExe) --processStart $($instance.ExeName)" -ForegroundColor Gray
+                Start-Process -FilePath $instance.UpdateExe -ArgumentList "--processStart", $instance.ExeName
+            }
         }
+    } else {
+        Write-Host "[*] Автоматический перезапуск не требуется (Discord не был запущен или скрипт работает в режиме настройки)." -ForegroundColor Gray
     }
+}
+
+$isHelpTriggered = $args -contains "-?" -or $args -contains "?" -or $args -contains "-h" -or $args -contains "-help" -or $args -contains "--help" -or $custom_args -contains "?"
+$hasWorkerAction = $install -or $repair -or $uninstall -or $openasar -or $install_openasar -or $uninstall_openasar -or $interactive
+
+if ($isHelpTriggered -and -not $hasWorkerAction) {
+    Show-Help
+    return
 }
 
 Print-Logo
