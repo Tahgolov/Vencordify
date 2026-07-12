@@ -69,11 +69,11 @@ function Help {
     Write-Host "  .\install.ps1 -uninstall -openasar"
     Write-Host "  .\install.ps1 -setup_autorun"
     Write-Host ""
-    return
 }
 
 if ($custom_args -contains "?") {
     Help
+    return
 }
 
 function Manage-ScheduledTask {
