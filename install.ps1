@@ -154,14 +154,27 @@ function Resolve-Arguments {
     $finalArgs = @()
     
     $passthroughFlags = @()
+    $isInteractiveTriggered = $interactive
+
     if ($custom_args) {
         foreach ($arg in $custom_args) {
+            if ($arg -eq "-interactive" -or $arg -eq "--interactive") {
+                isInteractiveTriggered = $true
+                continue
+            }
+
             if (-not $arg.StartsWith("-")) {
                 $passthroughFlags += "-$arg"
             } else {
                 $passthroughFlags += $arg
             }
         }
+    }
+
+    if ($isInteractiveTriggered) {
+        Write-Host "[*] Running in interactive mode with stripped flags..." -ForegroundColor Gray
+        if ($passthroughFlags) { $finalArgs += $passthroughFlags }
+        return $finalArgs
     }
     
     if ($PSBoundParameters.Count -eq 0 -and $passthroughFlags.Count -gt 0) {
