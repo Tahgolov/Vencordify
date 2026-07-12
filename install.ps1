@@ -159,7 +159,7 @@ function Resolve-Arguments {
     if ($custom_args) {
         foreach ($arg in $custom_args) {
             if ($arg -eq "-interactive" -or $arg -eq "--interactive") {
-                isInteractiveTriggered = $true
+                $isInteractiveTriggered = $true
                 continue
             }
 
