@@ -15,7 +15,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$Scripts:InstancesToRestart = @()
+$Script:InstancesToRestart = @()
 
 $ScriptVersion = "0.0.1"
 $MyRepo = "Tahgolov/Vencordify"
