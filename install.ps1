@@ -264,7 +264,7 @@ function Start-DiscordInstance {
             }
         }
     } else {
-        Write-Host "[*] Автоматический перезапуск не требуется (Discord не был запущен или скрипт работает в режиме настройки)." -ForegroundColor Gray
+        Write-Host "[*] Restart doesn't needed" -ForegroundColor Gray
     }
 }
 
