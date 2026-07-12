@@ -141,7 +141,7 @@ function Get-GitHubRelease {
 }
 
 function Stop-Discord {
-    $Scripts:InstancesToRestart = @()
+    $Script:InstancesToRestart = @()
     
     $discordNames = @("Discord", "DiscordPTB", "DiscordCanary")
     $discordProcesses = Get-Process -Name $discordNames -ErrorAction SilentlyContinue
@@ -161,8 +161,8 @@ function Stop-Discord {
                     if (Test-Path $updateExe) {
                         $instanceData = @{ UpdateExe = $updateExe; ExeName = $exeName }
                         
-                        if ($Scripts:InstancesToRestart.UpdateExe -notcontains $updateExe) {
-                            $Scripts:InstancesToRestart += $instanceData
+                        if ($Script:InstancesToRestart.UpdateExe -notcontains $updateExe) {
+                            $Script:InstancesToRestart += $instanceData
                         }
                     }
                 }
@@ -170,7 +170,7 @@ function Stop-Discord {
             }
         }
 
-        Write-Host "[*] Завершаем работу Discord для применения обновлений..." -ForegroundColor Yellow
+        Write-Host "[*] Killing Discord for applying patches..." -ForegroundColor Yellow
         Stop-Process -InputObject $discordProcesses -Force -ErrorAction SilentlyContinue
         $discordProcesses | Wait-Process -Timeout 5 -ErrorAction SilentlyContinue
     }
@@ -254,12 +254,12 @@ function Resolve-Arguments {
 function Start-DiscordInstance {
     $isEligibleAction = $install -or $repair -or $install_openasar -or ($openasar -and -not $uninstall)
 
-    if ($isEligibleAction -and -not $setup_autorun -and $Scripts:InstancesToRestart.Count -gt 0) {
-        Write-Host "[*] Возвращаем запущенные ранее инстансы Discord..." -ForegroundColor Green
+    if ($isEligibleAction -and -not $setup_autorun -and $Script:InstancesToRestart.Count -gt 0) {
+        Write-Host "[*] Return already launched Discord instances..." -ForegroundColor Green
         
-        foreach ($instance in $Scripts:InstancesToRestart) {
+        foreach ($instance in $Script:InstancesToRestart) {
             if (Test-Path $instance.UpdateExe) {
-                Write-Host "[+] Запуск: $($instance.UpdateExe) --processStart $($instance.ExeName)" -ForegroundColor Gray
+                Write-Host "[+] Run: $($instance.UpdateExe) --processStart $($instance.ExeName)" -ForegroundColor Gray
                 Start-Process -FilePath $instance.UpdateExe -ArgumentList "--processStart", $instance.ExeName
             }
         }
