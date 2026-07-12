@@ -21,9 +21,9 @@ $OnlineScriptUrl = "https://raw.githubusercontent.com/$MyRepo/main/install.ps1"
 
 $TaskName = "VencordifyAutoUpdate"
 
-function Show-Help {
+function Print-Logo {
     Write-Host ""
-    $Logo = @'
+        $Logo = @'
                                     _ _  __       
  /\   /\___ _ __   ___ ___  _ __ __| (_)/ _|_   _ 
  \ \ / / _ \ '_ \ / __/ _ \| '__/ _` | | |_| | | |
@@ -39,8 +39,13 @@ function Show-Help {
     Write-Host " [ Vencord homepage ]  https://vencord.dev" -ForegroundColor DarkCyan
     Write-Host " [ OpenAsar homepage ] https://openasar.dev" -ForegroundColor DarkCyan
     Write-Host " ----------------------------------------------------------------------" -ForegroundColor Gray
-
+    
     Write-Host ""
+}
+
+function Show-Help {
+    Print-Logo
+
     Write-Host "Description:"
     Write-Host "  Utility for Vencord/OpenAsar to customize, automize installation with autorun support."
     Write-Host "  Vencord: By default, it passes '-branch auto' in the install/uninstall scenarios."
@@ -236,6 +241,8 @@ function Start-DiscordInstance {
         }
     }
 }
+
+Print-Logo
 
 Manage-ScheduledTask
 
