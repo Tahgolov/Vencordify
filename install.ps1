@@ -73,7 +73,7 @@ function Help {
 
 if ($custom_args -contains "?") {
     Help
-    return
+    exit 0
 }
 
 function Manage-ScheduledTask {
@@ -237,7 +237,7 @@ if (Test-Path $InstallPath) { Remove-Item -Force -ErrorAction SilentlyContinue $
 
 Write-Host "[*] Downloading $($cliAsset.name)..." -ForegroundColor Cyan
 try {
-    curl.exe -s -L $cliAsset.browser_download_url -o $InstallPath
+    Invoke-WebRequest -Uri $cliAsset.browser_download_url -OutFile $InstallPath
 } catch {
     Write-Error "Download failed: $_"
     exit 4
